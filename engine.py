@@ -1,29 +1,42 @@
 import spacy
 
-# Load the English language model
+# Loading the NLP model
 nlp = spacy.load("en_core_web_sm")
 
-def anonymize_text(text):
+def protect_data(text):
+    """
+    Takes raw text, finds sensitive entities, and masks them.
+    Returns: (masked_text, secret_mapping_dictionary)
+    """
     doc = nlp(text)
-    mapping = {}
-    anonymized_text = text
+    secret_mapping = {}
+    safe_text = text
     
-    # Let's find Entities (Names, Orgs, Locations)
-    for ent in doc.ents:
-        if ent.label_ in ["PERSON", "ORG", "GPE"]: # GPE is locations
-            placeholder = f"[[{ent.label_}_{len(mapping)}]]"
-            mapping[placeholder] = ent.text
-            anonymized_text = anonymized_text.replace(ent.text, placeholder)
-            
-    return anonymized_text, mapping
+    # We loop through the entities found by spaCy
+    for i, ent in enumerate(doc.ents):
+        # Create a placeholder like [[PERSON_0]]
+        placeholder = f"[[{ent.label_}_{i}]]"
+        
+        # Save the real name in our secret 'vault'
+        secret_mapping[placeholder] = ent.text
+        
+        # Replace the real name with the placeholder in the text
+        safe_text = safe_text.replace(ent.text, placeholder)
+        
+    return safe_text, secret_mapping
 
-# TEST IT
-test_input = "Anupriya is working at Microsoft in Jammu."
-safe_text, secret_key = anonymize_text(test_input)
+def reveal_data(safe_text, secret_mapping):
+    """
+    Takes the AI's response and puts the real names back in.
+    """
+    original_text = safe_text
+    for placeholder, original_value in secret_mapping.items():
+        original_text = original_text.replace(placeholder, original_value)
+    return original_text
 
-print("--- ORIGINAL ---")
-print(test_input)
-print("\n--- SAFE FOR AI ---")
-print(safe_text)
-print("\n--- THE SECRET MAPPING ---")
-print(secret_key)
+# This part only runs if you run engine.py directly
+if __name__ == "__main__":
+    test_text = "Anupriya is a student in Jammu."
+    safe, vault = protect_data(test_text)
+    print(f"Locked: {safe}")
+    print(f"Unlocked: {reveal_data(safe, vault)}")
