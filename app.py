@@ -1,6 +1,15 @@
 import streamlit as st
 from engine import protect_data, reveal_data
 from ai_client import ask_ai_safely
+import os
+import spacy
+import subprocess
+
+try:
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
+    nlp = spacy.load("en_core_web_sm")
 
 st.set_page_config(page_title="PrivacyShield AI", layout="wide")
 
