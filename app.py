@@ -1,68 +1,45 @@
-import os
-import subprocess
-import sys
-
-try:
-    import spacy
-
-    try:
-        nlp = spacy.load("en_core_web_sm")
-    except OSError:
-        subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
-        nlp = spacy.load("en_core_web_sm")
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "spacy"])
-    subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
-    import spacy
-    nlp = spacy.load("en_core_web_sm")
-
 import streamlit as st
+import spacy
+import os
 from engine import protect_data, reveal_data
 from ai_client import ask_ai_safely
 
-st.set_page_config(page_title="PrivacyShield AI", layout="wide")
+# This will now work because Streamlit pre-installs it from requirements.txt
+nlp = spacy.load("en_core_web_sm")
+
+# --- UI CONFIGURATION ---
+st.set_page_config(page_title="PrivacyShield AI", layout="wide", page_icon="🛡️")
 
 st.title("🛡️ PrivacyShield AI")
 st.write("Secure your personal data before sending prompts to cloud-based LLMs.")
 
 with st.sidebar:
     st.title("System Overview")
-    st.write("""
-    This tool uses local Natural Language Processing (NLP) to identify 
-    and mask sensitive entities (names, locations, organizations) 
-    before they reach the API.
-    """)
+    st.write("Local NLP masking ensures PII never leaves your system.")
     st.divider()
-    st.caption("Engine: spaCy (en_core_web_sm)")
-    st.caption("LLM: Google Gemini 2.5")
+    st.caption("3rd Year CSE Project")
 
-prompt = st.text_area("Enter your prompt below (e.g., 'My name is Anupriya and I live in Jammu'):", height=150)
+# --- CORE LOGIC ---
+prompt = st.text_area("Enter your prompt:", height=150)
 
 if st.button("Run Secure Query"):
     if not prompt.strip():
-        st.error("Please enter a valid prompt.")
+        st.error("Please enter a message.")
     else:
-        # 1. Mask the data locally
+        # Step 1: Local Masking
         masked_text, mapping = protect_data(prompt)
         
         col1, col2 = st.columns(2)
-        
         with col1:
-            st.subheader("1. Local Masking (Private)")
-            st.info(f"**Sent to AI:**\n\n{masked_text}")
-            with st.expander("View Mapping Keys"):
-                st.json(mapping)
+            st.subheader("1. Masked Query")
+            st.info(masked_text)
         
-        with st.spinner("Querying AI safely..."):
-            # 2. Send masked text to Gemini
+        with st.spinner("AI is thinking..."):
+            # Step 2: Safe API Call
             ai_response = ask_ai_safely(masked_text)
-            
-            # 3. Unmask the response locally
+            # Step 3: Local Unmasking
             final_output = reveal_data(ai_response, mapping)
         
         with col2:
-            st.subheader("2. Final Response (De-identified)")
+            st.subheader("2. Final Response")
             st.success(final_output)
-
-st.divider()
-st.caption("Built as a 3rd-year CSE Project - Privacy-First AI Middleware.")
