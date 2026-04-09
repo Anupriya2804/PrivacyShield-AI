@@ -35,11 +35,19 @@ if st.button("Run Secure Query"):
             st.info(masked_text)
         
         with st.spinner("AI is thinking..."):
-            # Step 2: Safe API Call
-            ai_response = ask_ai_safely(masked_text)
+            # Step 2: Safe API Call with Context Instruction
+            # We add a hint so the AI knows to preserve the tokens like [[PERSON_0]]
+            system_hint = "Instructions: Respond to the following prompt. Keep all placeholders like [[PERSON_0]] or [[ORG_0]] exactly as they are in your response.\n\n"
+            full_prompt = system_hint + masked_text
+            
+            ai_response = ask_ai_safely(full_prompt)
+            
             # Step 3: Local Unmasking
             final_output = reveal_data(ai_response, mapping)
         
         with col2:
             st.subheader("2. Final Response")
             st.success(final_output)
+
+st.divider()
+st.caption("Data is processed locally using spaCy. No PII is sent to the cloud API.")
