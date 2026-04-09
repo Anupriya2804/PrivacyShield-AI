@@ -4,9 +4,6 @@ import os
 from engine import protect_data, reveal_data
 from ai_client import ask_ai_safely
 
-# This will now work because Streamlit pre-installs it from requirements.txt
-nlp = spacy.load("en_core_web_sm")
-
 # --- UI CONFIGURATION ---
 st.set_page_config(page_title="PrivacyShield AI", layout="wide", page_icon="🛡️")
 
