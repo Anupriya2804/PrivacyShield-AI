@@ -1,26 +1,23 @@
 import os
-from google import genai
+from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
 
-api_key = os.getenv("GOOGLE_API_KEY")
+api_key = os.getenv("GROQ_API_KEY")
+client = Groq(api_key=api_key)
 
-if not api_key:
-    def ask_ai_safely(prompt):
-        return "Error: GOOGLE_API_KEY not found."
-else:
-    client = genai.Client(api_key=api_key)
-
-    def ask_ai_safely(prompt):
-        try:
-            response = client.models.generate_content(
-                model="gemini-2.0-flash",
-                contents=prompt
-            )
-            if response and response.text:
-                return response.text
-            else:
-                return "AI returned an empty response. Check safety filters."
-        except Exception as e:
-            return f"Connection Error: {str(e)}"
+def ask_ai_safely(prompt):
+    try:
+        response = client.chat.completions.create(
+           model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"Connection Error: {str(e)}"
