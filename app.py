@@ -1,21 +1,23 @@
 import streamlit as st
-import spacy
 import os
 import subprocess
+import sys
+
+# 1. FORCE SPACY DOWNLOAD BEFORE ANY OTHER IMPORTS RUN
+try:
+    import spacy
+    nlp = spacy.load("en_core_web_sm")
+except OSError:
+    subprocess.run([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
+    import spacy
+
+# 2. NOW IT IS SAFE TO IMPORT YOUR CUSTOM MODULES
 from engine import protect_data, reveal_data
 from ai_client import ask_ai_safely
 
-# --- AUTOMATIC SPACY MODEL DOWNLOAD ---
-# Streamlit Cloud needs this fallback block because it won't have 
-# en_core_web_sm pre-installed when the container spins up.
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
-    # No need to assign it to nlp here if your engine.py handles the loading internally!
-
 # --- UI CONFIGURATION ---
 st.set_page_config(page_title="PrivacyShield AI", layout="wide")
+# ... (Keep the rest of your app.py code exactly the same below this!)
 
 # Custom CSS for the Blue Engineering Theme
 st.markdown("""
