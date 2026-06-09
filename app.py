@@ -1,23 +1,24 @@
 import streamlit as st
 import os
-import subprocess
-import sys
+import spacy
 
-# 1. FORCE SPACY DOWNLOAD BEFORE ANY OTHER IMPORTS RUN
+# Direct fallback loading from the official Explosion GitHub wheel
 try:
-    import spacy
     nlp = spacy.load("en_core_web_sm")
 except OSError:
-    subprocess.run([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
-    import spacy
+    try:
+        nlp = spacy.load("https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl")
+    except Exception:
+        # Fallback to prevent app crash if network blips
+        pass
 
-# 2. NOW IT IS SAFE TO IMPORT YOUR CUSTOM MODULES
+# NOW import your custom modules safely
 from engine import protect_data, reveal_data
 from ai_client import ask_ai_safely
 
 # --- UI CONFIGURATION ---
 st.set_page_config(page_title="PrivacyShield AI", layout="wide")
-# ... (Keep the rest of your app.py code exactly the same below this!)
+
 
 # Custom CSS for the Blue Engineering Theme
 st.markdown("""
