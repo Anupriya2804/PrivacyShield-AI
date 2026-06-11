@@ -70,8 +70,20 @@ with st.sidebar:
     st.write("PrivacyShield intercepts PII (Names, Locations, Orgs) locally before they leave your system.")
 
 # --- CORE LOGIC ---
-prompt = st.text_area("Enter your prompt:", height=150, placeholder="e.g., Draft an internship application for Anupriya at Microsoft...")
-
+with st.spinner("Processing safely..."):
+            # Step 2: Safe API Call with dynamic placeholder handling
+            system_hint = (
+                "Instructions: You are a secure backend assistant. You will receive a prompt where sensitive data "
+                "has been masked with tokens like [[PRODUCT_0]], [[PERSON_0]], or [[ORG_0]].\n"
+                "CRITICAL RULE: Treat ALL placeholders—regardless of whether they say PERSON, PRODUCT, or ORG—strictly "
+                "as dynamic variable placeholders for the name or entity requested. Do not interpret [[PRODUCT_0]] as a "
+                "literal commodity, software, or corporate launch item. If the prompt asks to 'draft an email for [[PRODUCT_0]]', "
+                "treat it exactly as 'draft an email for this person'. Keep all placeholders exactly as they are in your response.\n\n"
+            )
+            full_prompt = system_hint + masked_text
+            
+            ai_response = ask_ai_safely(full_prompt)
+            
 if st.button("Run Secure Query"):
     if not prompt.strip():
         st.error("Please enter a message.")
