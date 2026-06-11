@@ -9,7 +9,19 @@ some company's server, readable by anyone who gets close enough.
 That scared me. So I built this.
 
 ---
-
+## 🔴 Live Demo
+ 
+👉 **[privacyshield-ai-z1to.onrender.com](https://privacyshield-ai-z1to.onrender.com)**
+ 
+---
+ 
+## The Problem
+ 
+Every time you use ChatGPT, Gemini, or any cloud AI — your words leave your device. Names, locations, companies, health issues, personal situations. All of it hits a server you don't control.
+ 
+Most people just... accept that. I didn't want to.
+ 
+---
 ## What it does
 
 Every time you use ChatGPT, Gemini, or any cloud AI - your words leave 
@@ -61,48 +73,62 @@ difference between getting help and giving away their life.
 | PII Detection | spaCy (runs 100% locally) |
 | AI Backend | Groq API — llama-3.3-70b |
 | Interface | Streamlit |
-| Privacy Layer | Custom masking engine |
-
-The important part — spaCy runs on your machine. Nothing sensitive 
-touches any server.
+| Privacy Engine | Custom masking + unmasking logic |
+ 
+**The part that matters:** spaCy runs entirely on your machine. Your actual data never touches any server.
 
 ---
-
-## Run it yourself
-
+## Run It Yourself
+ 
 ```bash
 git clone https://github.com/Anupriya2804/PrivacyShield-AI.git
 cd PrivacyShield-AI
 python -m venv venv
+```
+ 
+Activate the environment:
+ 
+```bash
+# Windows
 venv\Scripts\activate
+ 
+# macOS / Linux
+source venv/bin/activate
+```
+ 
+Install dependencies:
+ 
+```bash
 pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 ```
-
-Create a `.env` file: 
+ 
+Add your API key — create a `.env` file in the root:
+ 
+```
 GROQ_API_KEY=your_key_here
-
-Get your free Groq key at [console.groq.com](https://console.groq.com)
-
-Then run:
-
+```
+ 
+Get a free key at [console.groq.com](https://console.groq.com/)
+ 
+Launch:
+ 
 ```bash
 streamlit run app.py
 ```
-
+ 
 ---
-
-## What's next
-
+ 
+## What's Next
+ 
 - Support for more languages
 - Custom entity types — financial data, medical terms
-- Browser extension so it works everywhere, not just this app
-- Offline mode — fully local AI so nothing leaves your device ever
-
+- Browser extension so privacy works everywhere, not just here
+- Fully offline mode — local AI, nothing leaves your device, ever
 ---
-
-## Built by
-
-Anupriya — CS undergrad, Ex-intern DRDO, building things that actually matter
-
-[GitHub](https://github.com/Anupriya2804) · [LinkedIn](https://linkedin.com/in/anupriya-sihag)
+ 
+## Built By
+ 
+**Anupriya** — CS undergrad, Ex-intern at DRDO, building things that actually matter.
+ 
+[GitHub](https://github.com/Anupriya2804) · [LinkedIn](https://linkedin.com/)
