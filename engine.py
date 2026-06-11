@@ -1,12 +1,6 @@
 import spacy
 
-# --- SAFE LAZY-LOADING FOR CLOUD DEPLOYMENT ---
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    # If Streamlit Cloud can't find it locally, load it directly from the official wheel URL
-    model_url = "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl"
-    nlp = spacy.load(model_url)
+nlp = spacy.load("en_core_web_sm")
 
 def protect_data(text):
     doc = nlp(text)
