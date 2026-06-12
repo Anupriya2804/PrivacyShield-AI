@@ -21,6 +21,7 @@ st.set_page_config(page_title="PrivacyShield AI", layout="wide")
 
 
 # Custom CSS for the Blue Engineering Theme
+# Custom CSS for the Blue Engineering Theme
 st.markdown("""
     <style>
     .main {
@@ -51,10 +52,17 @@ st.markdown("""
         border: 1px solid #cbd5e1 !important;
         border-radius: 8px !important;
     }
-    /* Sidebar styling */
+    /* Sidebar styling & fixing the white border artifact */
     section[data-testid="stSidebar"] {
         background-color: #f8fafc;
         border-right: 1px solid #e2e8f0;
+    }
+    /* FIX: Force any native Streamlit structural borders/slivers on the left edge to disappear */
+    div[data-testid="stSidebarCollapseButton"] {
+        background-color: transparent !important;
+    }
+    section[data-testid="stSidebar"] > div {
+        background-color: #f8fafc !important;
     }
     </style>
 """, unsafe_allow_html=True)
