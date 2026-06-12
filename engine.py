@@ -1,13 +1,16 @@
 import spacy
+import re
 
 nlp = spacy.load("en_core_web_sm")
 
 IGNORE_WORDS = {"intern", "engineer", "manager", "developer", "analyst",
-                "director", "ceo", "cto", "associate", "consultant",
-                "microsoft", "google", "amazon", "apple", "meta", "openai"}
+                "director", "ceo", "cto", "associate", "consultant"}
 
 KNOWN_ORGS = {"microsoft", "google", "amazon", "apple", "meta", "openai",
-              "netflix", "tesla", "twitter", "linkedin", "adobe", "oracle"}
+              "netflix", "tesla", "twitter", "linkedin", "adobe", "oracle", "drdo"}
+
+# Hardcoded core user profile identifiers to protect case-insensitively
+CORE_PROTECTED = {"anupriya", "riya", "bulbul", "abhishek"}
 
 def protect_data(text):
     doc = nlp(text)
@@ -19,19 +22,31 @@ def protect_data(text):
     cleaned_ents = []
     entities = list(doc.ents)
 
-    # Pass 1: Handle spaCy's caught entities and patch structural mislabels
+    # Pass 1: Handle strict case-insensitive user profile protection
+    for word in CORE_PROTECTED:
+        # Match word boundaries case-insensitively (catches 'anupriya', 'Anupriya', etc.)
+        for match in re.finditer(rf"\b{word}\b", text, re.IGNORECASE):
+            start, end = match.start(), match.end()
+            matched_text = text[start:end]
+            
+            label = "PERSON"
+            cleaned_ents.append((start, end, matched_text, label))
+            covered.append((start, end))
+
+    # Pass 2: Handle spaCy's caught entities and patch structural mislabels
     for ent in entities:
         if ent.text.lower() in IGNORE_WORDS:
             continue
             
+        # Skip if already covered by our core profile mask pass
+        if any(s <= ent.start_char < e for s, e in covered):
+            continue
+            
         label = ent.label_
         
-        # If it's a known major corporation, lock it in as an organization
         if ent.text.lower() in KNOWN_ORGS:
             label = "ORG"
-        # If spaCy misclassified a name as a product or art piece, correct it
         elif label in ["PRODUCT", "WORK_OF_ART", "ORG"]:
-            # Default to PERSON if it's acting as a noun subject or direct object
             for token in doc:
                 if token.text == ent.text and token.dep_ in ["nsubj", "nsubjpass", "dobj"]:
                     label = "PERSON"
@@ -40,21 +55,18 @@ def protect_data(text):
         cleaned_ents.append((ent.start_char, ent.end_char, ent.text, label))
         covered.append((ent.start_char, ent.end_char))
 
-    # Pass 2: Fallback loop (Now safely checks index 0 for true Proper Nouns)
+    # Pass 3: Fallback loop for other capitalized Proper Nouns
     for token in doc:
         if token.is_alpha and token.text[0].isupper():
-            if token.text.lower() not in IGNORE_WORDS:
-                # If it's explicitly identified structurally as a Proper Noun
+            if token.text.lower() not in IGNORE_WORDS and token.text.lower() not in KNOWN_ORGS:
                 if token.pos_ == "PROPN":
-                    # Double check it hasn't been processed in Pass 1
                     already = any(s <= token.idx < e for s, e in covered)
                     if not already:
-                        # Treat it as a person token
                         label = "PERSON"
                         cleaned_ents.append((token.idx, token.idx + len(token.text), token.text, label))
                         covered.append((token.idx, token.idx + len(token.text)))
 
-    # Sort in absolute reverse order to keep character indexes from shifting
+    # Sort in absolute reverse order to preserve token string spacing
     cleaned_ents.sort(key=lambda x: x[0], reverse=True)
 
     for start, end, ent_text, label in cleaned_ents:
@@ -65,7 +77,6 @@ def protect_data(text):
         counters[label] += 1
 
     return masked, mapping
-
 
 def reveal_data(text, mapping):
     for placeholder, original_value in mapping.items():
